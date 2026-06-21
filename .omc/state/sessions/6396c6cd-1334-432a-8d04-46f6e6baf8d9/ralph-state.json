@@ -1,0 +1,13 @@
+{
+  "active": true,
+  "session_id": "6396c6cd-1334-432a-8d04-46f6e6baf8d9",
+  "project_path": "/mnt/d/workspace/weekly-schedule-maker",
+  "iteration": 1,
+  "max_iterations": 200,
+  "current_phase": "fullralph",
+  "prompt": "fullralph: 配信スケジュールメーカー Vite化",
+  "started_at": "2026-06-21T20:27:33.421Z",
+  "last_checked_at": "2026-06-21T20:29:57.993Z",
+  "updated_at": "2026-06-21T20:29:57.993Z",
+  "armed_by": "fullralph"
+}
