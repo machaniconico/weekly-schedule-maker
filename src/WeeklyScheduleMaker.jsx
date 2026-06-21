@@ -1137,7 +1137,7 @@ export default function WeeklyScheduleMaker(){
 
   const notify=(m)=>{setToast(m);setTimeout(()=>setToast(""),2500);};
   useEffect(()=>{try{const r=localStorage.getItem("my-templates");if(r)setMyTemplates(JSON.parse(r));}catch{}},[]);
-  const persist=async(list)=>{setMyTemplates(list);try{localStorage.setItem("my-templates",JSON.stringify(list));}catch{}};
+  const persist=async(list)=>{setMyTemplates(list);try{localStorage.setItem("my-templates",JSON.stringify(list));}catch{notify("⚠️ 保存に失敗しました（ブラウザのストレージ制限の可能性）");}};
 
   const theme=THEMES[themeIdx];const dark=isDk(theme);
   const monday=new Date(startDate+"T00:00:00");const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
