@@ -94,3 +94,22 @@ export function parseTemplateJson(str, opts = {}) {
   const parsed = JSON.parse(str);
   return validateTemplate(parsed, opts);
 }
+
+// ダウンロード用のファイル名を生成する（拡張子なしのベース名）。
+// タイトル・期間からファイルシステムに安全な名前を作る。
+export function exportFilename(title, range, ext = "png") {
+  // タイトルを安全化（ファイル名に使えない文字を除去、空白を _ に）
+  const safeTitle = (title || "")
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, "_")
+    .slice(0, 40);
+  // 期間 "6/22 ー 6/28" → "6-22_6-28"
+  const safeRange = (range || "")
+    .replace(/[\sー―—~〜-]+/g, "_")
+    .replace(/\//g, "-")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+  const base = [safeTitle, safeRange].filter(Boolean).join("_") || "schedule";
+  return `${base}.${ext}`;
+}
