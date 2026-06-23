@@ -95,6 +95,24 @@ export function parseTemplateJson(str, opts = {}) {
   return validateTemplate(parsed, opts);
 }
 
+// 作業中ドラフトを保存する localStorage キー。
+export const DRAFT_KEY = "current-draft";
+
+// 自動保存ドラフト(JSON文字列)を復元する。
+// テンプレート項目に加え startDate を含む。壊れていれば null（呼び出し側は既定値を使う）。
+export function parseDraft(str, opts = {}) {
+  if (!str) return null;
+  try {
+    const o = JSON.parse(str);
+    const base = validateTemplate(o, opts); // design/themeIdx/title/schedule を正規化
+    // startDate は月曜へスナップした値で返す（不正なら null → 呼び出し側が既定値を使う）
+    const startDate = typeof o.startDate === "string" ? snapToMondayStr(o.startDate) : null;
+    return { ...base, startDate };
+  } catch {
+    return null;
+  }
+}
+
 // SVG/XML へ埋め込む文字列をエスケープする。
 // ユーザー入力（タイトル・配信内容・時間）をSVGマークアップへ直接連結する際、
 // & < > " ' をエスケープしないと不正なSVGになり書き出しが壊れる。

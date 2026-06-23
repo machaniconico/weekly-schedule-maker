@@ -9,6 +9,7 @@ import {
   parseTemplateJson,
   exportFilename,
   escapeXml,
+  parseDraft,
   DAYS_JA,
   DARK_THEME_IDS,
 } from "../src/lib/schedule.js";
@@ -181,6 +182,53 @@ describe("escapeXml", () => {
   });
   it("数値も文字列化して処理", () => {
     expect(escapeXml(22)).toBe("22");
+  });
+});
+
+describe("parseDraft", () => {
+  const opts = { designIds: ["kawaii", "clean"], themeCount: 16 };
+
+  it("正常ドラフトを復元（startDate含む）", () => {
+    const json = JSON.stringify({
+      design: "clean",
+      themeIdx: 2,
+      title: "T",
+      startDate: "2026-06-22",
+      schedule: [{ text: "x", time: "20:00" }],
+    });
+    const r = parseDraft(json, opts);
+    expect(r.design).toBe("clean");
+    expect(r.themeIdx).toBe(2);
+    expect(r.startDate).toBe("2026-06-22");
+    expect(r.schedule).toHaveLength(7);
+  });
+
+  it("月曜以外の startDate はその週の月曜へスナップして復元", () => {
+    // 2026-06-24 は水曜 → 月曜 2026-06-22
+    const json = JSON.stringify({ design: "kawaii", schedule: [], startDate: "2026-06-24" });
+    expect(parseDraft(json, opts).startDate).toBe("2026-06-22");
+  });
+
+  it("不正な startDate は null（他は復元）", () => {
+    const json = JSON.stringify({ design: "kawaii", schedule: [], startDate: "2026-02-30" });
+    const r = parseDraft(json, opts);
+    expect(r.startDate).toBeNull();
+    expect(r.design).toBe("kawaii");
+  });
+
+  it("空/null/壊れたJSON は null", () => {
+    expect(parseDraft("")).toBeNull();
+    expect(parseDraft(null)).toBeNull();
+    expect(parseDraft("{broken")).toBeNull();
+  });
+
+  it("design欠如など構造不正は null（例外を投げない）", () => {
+    expect(parseDraft('{"schedule":[]}', opts)).toBeNull();
+  });
+
+  it("未知 design は opts によりフォールバック", () => {
+    const json = JSON.stringify({ design: "zzz", schedule: [] });
+    expect(parseDraft(json, opts).design).toBe("kawaii");
   });
 });
 
