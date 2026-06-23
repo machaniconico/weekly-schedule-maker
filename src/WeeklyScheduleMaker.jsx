@@ -1125,7 +1125,24 @@ function ExportModal({svgString,onClose,accent,dark,title,range}){
 /* ════════════════════════════════════════
    MAIN APP
    ════════════════════════════════════════ */
+// 画面幅が指定px以下かを購読するフック（モバイルレイアウト切替用）。
+function useIsMobile(maxWidth=768){
+  const get=()=>typeof window!=="undefined"&&typeof window.matchMedia==="function"
+    ?window.matchMedia(`(max-width:${maxWidth}px)`).matches:false;
+  const[isMobile,setIsMobile]=useState(get);
+  useEffect(()=>{
+    if(typeof window==="undefined"||typeof window.matchMedia!=="function")return;
+    const mq=window.matchMedia(`(max-width:${maxWidth}px)`);
+    const onChange=()=>setIsMobile(mq.matches);
+    onChange();
+    mq.addEventListener?mq.addEventListener("change",onChange):mq.addListener(onChange);
+    return()=>{mq.removeEventListener?mq.removeEventListener("change",onChange):mq.removeListener(onChange);};
+  },[maxWidth]);
+  return isMobile;
+}
+
 export default function WeeklyScheduleMaker(){
+  const isMobile=useIsMobile();
   const[design,setDesign]=useState("kawaii");const[themeIdx,setThemeIdx]=useState(0);const[uploadedImg,setUploadedImg]=useState(null);
   const[title,setTitle]=useState("");const[startDate,setStartDate]=useState(()=>{const m=getMonday(new Date());return m.toISOString().split("T")[0];});
   const[schedule,setSchedule]=useState(emptySchedule);
@@ -1159,13 +1176,13 @@ export default function WeeklyScheduleMaker(){
       {showExport&&<ExportModal svgString={exportStr} onClose={()=>setShowExport(false)} accent={theme.accent} dark={dark} title={title} range={range}/>}
       {toast&&<div style={{position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",zIndex:2000,background:"white",color:pTx,padding:"12px 24px",borderRadius:12,boxShadow:"0 8px 32px rgba(0,0,0,0.2)",fontWeight:700,fontSize:14,border:`2px solid ${theme.accent}40`}}>{toast}</div>}
 
-      <div style={{background:"rgba(255,255,255,0.9)",backdropFilter:"blur(12px)",borderBottom:`1px solid ${bd}`,padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:50}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}><span style={{fontSize:26}}>📅</span><div><div style={{fontWeight:900,fontSize:17,color:theme.accent,letterSpacing:1}}>配信スケジュールメーカー</div><div style={{fontSize:10,color:pTx,opacity:.5}}>VTuber / YouTube Live</div></div></div>
-        <button onClick={()=>setShowExport(true)} style={{background:theme.accent,color:"white",border:"none",borderRadius:10,padding:"10px 28px",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 16px ${theme.accent}40`}}>📥 画像を保存</button>
+      <div style={{background:"rgba(255,255,255,0.9)",backdropFilter:"blur(12px)",borderBottom:`1px solid ${bd}`,padding:isMobile?"10px 14px":"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,position:"sticky",top:0,zIndex:50}}>
+        <div style={{display:"flex",alignItems:"center",gap:isMobile?8:12,minWidth:0}}><span style={{fontSize:isMobile?22:26}}>📅</span><div style={{minWidth:0}}><div style={{fontWeight:900,fontSize:isMobile?15:17,color:theme.accent,letterSpacing:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>配信スケジュールメーカー</div><div style={{fontSize:10,color:pTx,opacity:.5}}>VTuber / YouTube Live</div></div></div>
+        <button onClick={()=>setShowExport(true)} style={{background:theme.accent,color:"white",border:"none",borderRadius:10,padding:isMobile?"9px 16px":"10px 28px",fontWeight:900,fontSize:isMobile?13:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 16px ${theme.accent}40`,whiteSpace:"nowrap",flexShrink:0}}>📥 {isMobile?"保存":"画像を保存"}</button>
       </div>
 
-      <div style={{display:"flex",maxWidth:1600,margin:"0 auto"}}>
-        <div style={{width:380,minWidth:380,background:pBg,borderRight:`1px solid ${bd}`,minHeight:"calc(100vh - 60px)",overflowY:"auto"}}>
+      <div style={{display:"flex",flexDirection:isMobile?"column":"row",maxWidth:1600,margin:"0 auto"}}>
+        <div style={{width:isMobile?"100%":380,minWidth:isMobile?0:380,boxSizing:"border-box",background:pBg,borderRight:isMobile?"none":`1px solid ${bd}`,borderBottom:isMobile?`1px solid ${bd}`:"none",minHeight:isMobile?"auto":"calc(100vh - 60px)",overflowY:"auto"}}>
           <div style={{display:"flex",borderBottom:`1px solid ${bd}`}}>
             {[{id:"design",l:"🎨 デザイン"},{id:"schedule",l:"📝 予定"},{id:"templates",l:"💾 テンプレ"}].map(x=>(
               <button key={x.id} onClick={()=>setTab(x.id)} style={{flex:1,padding:"13px 4px",border:"none",background:tab===x.id?"white":"transparent",borderBottom:tab===x.id?`3px solid ${theme.accent}`:"3px solid transparent",color:tab===x.id?theme.accent:pTx,fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit",opacity:tab===x.id?1:.5}}>{x.l}</button>
@@ -1237,7 +1254,7 @@ export default function WeeklyScheduleMaker(){
           </div>
         </div>
 
-        <div style={{flex:1,padding:24,display:"flex",alignItems:"flex-start",justifyContent:"center"}}>
+        <div style={{flex:1,padding:isMobile?14:24,display:"flex",alignItems:"flex-start",justifyContent:"center",boxSizing:"border-box",minWidth:0}}>
           <div style={{width:"100%",maxWidth:1000}}>
             <div style={{fontSize:12,color:pTx,opacity:.4,marginBottom:8,fontWeight:700}}>プレビュー (1280×720) ・ 右エリア = VTuberモデル配置想定</div>
             <div style={{borderRadius:12,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,0.1)",background:"white"}}>
