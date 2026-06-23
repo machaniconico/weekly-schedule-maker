@@ -1175,7 +1175,7 @@ export default function WeeklyScheduleMaker(){
   const fullSch=schedule.map((s,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return{...s,date:d.getDate()};});
 
   const upd=(i,k,v)=>setSchedule(p=>{const n=[...p];n[i]={...n[i],[k]:v};return n;});
-  const exportStr=buildExportSVG({designId:design,t:theme,sch:fullSch,range,title,img:uploadedImg});
+  // 大きな書き出しSVGはモーダルを開いた時だけ生成（毎キーストロークでの無駄な生成を避ける）
   const Preview=PREVIEW[design];
 
   const saveT=async()=>{const s={name:saveName||"無題",design,themeIdx,title,schedule:[...schedule],createdAt:new Date().toISOString()};await persist([s,...myTemplates]);setSaveName("");notify("✅ 保存しました！");};
@@ -1189,7 +1189,7 @@ export default function WeeklyScheduleMaker(){
   return(
     <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:F}}>
       <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet"/>
-      {showExport&&<ExportModal svgString={exportStr} onClose={()=>setShowExport(false)} accent={theme.accent} dark={dark} title={title} range={range}/>}
+      {showExport&&<ExportModal svgString={buildExportSVG({designId:design,t:theme,sch:fullSch,range,title,img:uploadedImg})} onClose={()=>setShowExport(false)} accent={theme.accent} dark={dark} title={title} range={range}/>}
       {toast&&<div style={{position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",zIndex:2000,background:"white",color:pTx,padding:"12px 24px",borderRadius:12,boxShadow:"0 8px 32px rgba(0,0,0,0.2)",fontWeight:700,fontSize:14,border:`2px solid ${theme.accent}40`}}>{toast}</div>}
 
       <div style={{background:"rgba(255,255,255,0.9)",backdropFilter:"blur(12px)",borderBottom:`1px solid ${bd}`,padding:isMobile?"10px 14px":"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,position:"sticky",top:0,zIndex:50}}>
