@@ -12,7 +12,7 @@ const rcs=(x,y,w,h,c,sw,o,rx=0)=>`<rect x="${x}" y="${y}" width="${w}" height="$
 const star4=(x,y,s,c,o)=>`<path d="M${x},${y-s}L${x+s*.22},${y-s*.3}L${x+s},${y}L${x+s*.22},${y+s*.3}L${x},${y+s}L${x-s*.22},${y+s*.3}L${x-s},${y}L${x-s*.22},${y-s*.3}Z" fill="${c}" opacity="${o}"/>`;
 const mo=a=>a.join("");
 
-const THEMES=[
+export const THEMES=[
   // ── ライトテーマ (10) ──
   {id:"aqua",name:"アクアポップ",primary:"#7DD3FC",secondary:"#BAE6FD",accent:"#0EA5E9",bg:"#E0F2FE",text:"#0C4A6E",card:"rgba(255,255,255,0.75)",spark:"#F59E0B"},
   {id:"sakura",name:"桜ピンク",primary:"#F9A8D4",secondary:"#FBCFE8",accent:"#EC4899",bg:"#FDF2F8",text:"#831843",card:"rgba(255,255,255,0.75)",spark:"#A78BFA"},
@@ -33,7 +33,7 @@ const THEMES=[
   {id:"deepblue",name:"ディープブルー",primary:"#818CF8",secondary:"#1E1B4B",accent:"#6366F1",bg:"#0F0E2A",text:"#C7D2FE",card:"rgba(30,27,75,0.82)",spark:"#FB7185"},
 ];
 
-const DESIGNS=[
+export const DESIGNS=[
   {id:"kawaii",name:"かわいい",desc:"ふわふわキラキラ ✨"},
   {id:"clean",name:"クリーン",desc:"ミニマル＆モダン"},
   {id:"pop",name:"ポップ",desc:"カラフル＆元気"},
@@ -864,7 +864,7 @@ const PREVIEW={kawaii:PreviewKawaii,clean:PreviewClean,pop:PreviewPop,streamer:P
 /* ════════════════════════════════════════
    EXPORT SVG (string builder) - LUXURIOUS
    ════════════════════════════════════════ */
-function buildExportSVG({designId,t,sch,range,title,img}){
+export function buildExportSVG({designId,t,sch,range,title,img}){
   const dk=isDk(t);
   // ユーザー入力をSVGへ直接連結するため、XML特殊文字をエスケープして不正SVG/書き出し崩れを防ぐ。
   // 文字数・大文字化などの算出は raw 値で行う必要があるため raw も保持する。
