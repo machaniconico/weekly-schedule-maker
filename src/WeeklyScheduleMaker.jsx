@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
+import { DAYS_JA, DAYS_EN, getMonday, fmtDate, isDk, emptySchedule, snapToMondayStr, parseTemplateJson } from "./lib/schedule.js";
 
-const DAYS_JA=["月曜日","火曜日","水曜日","木曜日","金曜日","土曜日","日曜日"];
-const DAYS_EN=["MON","TUE","WED","THU","FRI","SAT","SUN"];
 const F="'Zen Maru Gothic','Hiragino Kaku Gothic Pro','Yu Gothic',sans-serif";
 const MO="'Courier New','Consolas',monospace";
 
@@ -49,9 +48,7 @@ const DESIGNS=[
   {id:"grunge",name:"グランジ",desc:"ストリート＆ダーク"},
 ];
 
-function getMonday(d){const dt=new Date(d);const day=dt.getDay();dt.setDate(dt.getDate()-day+(day===0?-6:1));return dt;}
-function fmtDate(d){return `${d.getMonth()+1}/${d.getDate()}`;}
-function isDk(t){return["midnight","neon","retro"].includes(t.id);}
+// getMonday / fmtDate / isDk は ./lib/schedule.js から import（純粋ロジック層に集約）
 
 /* ════════════════════════════════════════
    PREVIEW COMPONENTS (12 designs) - LUXURIOUS backgrounds
@@ -1131,7 +1128,7 @@ function ExportModal({svgString,onClose,accent,dark}){
 export default function WeeklyScheduleMaker(){
   const[design,setDesign]=useState("kawaii");const[themeIdx,setThemeIdx]=useState(0);const[uploadedImg,setUploadedImg]=useState(null);
   const[title,setTitle]=useState("");const[startDate,setStartDate]=useState(()=>{const m=getMonday(new Date());return m.toISOString().split("T")[0];});
-  const[schedule,setSchedule]=useState(()=>DAYS_JA.map(()=>({text:"",time:""})));
+  const[schedule,setSchedule]=useState(emptySchedule);
   const[tab,setTab]=useState("design");const[showExport,setShowExport]=useState(false);
   const[myTemplates,setMyTemplates]=useState([]);const[saveName,setSaveName]=useState("");const[importJson,setImportJson]=useState("");const[toast,setToast]=useState("");
 
@@ -1149,10 +1146,10 @@ export default function WeeklyScheduleMaker(){
   const Preview=PREVIEW[design];
 
   const saveT=async()=>{const s={name:saveName||"無題",design,themeIdx,title,schedule:[...schedule],createdAt:new Date().toISOString()};await persist([s,...myTemplates]);setSaveName("");notify("✅ 保存しました！");};
-  const loadT=(t)=>{setDesign(t.design||"kawaii");setThemeIdx(t.themeIdx??0);setTitle(t.title||"");setSchedule(t.schedule||DAYS_JA.map(()=>({text:"",time:""})));notify("📂 読み込みました");};
+  const loadT=(t)=>{setDesign(t.design||"kawaii");setThemeIdx(t.themeIdx??0);setTitle(t.title||"");setSchedule(t.schedule||emptySchedule());notify("📂 読み込みました");};
   const delT=async(i)=>{await persist(myTemplates.filter((_,j)=>j!==i));notify("🗑️ 削除");};
   const expT=(t)=>{navigator.clipboard?.writeText(JSON.stringify(t,null,2)).then(()=>notify("📋 コピー")).catch(()=>notify("失敗"));};
-  const impT=async()=>{try{const p=JSON.parse(importJson);if(!p.design||!p.schedule)throw 0;p.name=p.name||"インポート";p.createdAt=new Date().toISOString();await persist([p,...myTemplates]);setImportJson("");notify("✅ インポート完了");}catch{notify("❌ JSON形式エラー");}};
+  const impT=async()=>{try{const p=parseTemplateJson(importJson,{designIds:DESIGNS.map(d=>d.id),themeCount:THEMES.length});p.createdAt=new Date().toISOString();await persist([p,...myTemplates]);setImportJson("");notify("✅ インポート完了");}catch{notify("❌ JSON形式エラー");}};
 
   const pBg="#f8fafc",pTx="#1e293b",bd="rgba(0,0,0,0.08)",iBg="white",iBd="#e2e8f0";
 

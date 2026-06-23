@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install dependencies
         if: ${{ hashFiles('package.json') != '' }}
@@ -38,12 +39,12 @@ jobs:
             elif [ -f yarn.lock ];      then yarn test;
             else npm test --if-present; fi
           elif [ -f .auto-merge-no-test-ok ]; then
-            # Explicit opt-in: repo owner has acknowledged this gate verifies nothing.
             echo "No test script detected, but .auto-merge-no-test-ok opt-in is present — passing."
           else
             echo "::error::No test script detected — refusing to certify this PR as tested."
-            echo "This 'test' status gates auto-merge but nothing was actually verified."
-            echo "Add a 'test' script to package.json, or create a '.auto-merge-no-test-ok'"
-            echo "file in the repo root to explicitly opt out (NOT a real safety gate)."
             exit 1
           fi
+
+      - name: Build
+        if: ${{ hashFiles('package.json') != '' }}
+        run: npm run build --if-present
