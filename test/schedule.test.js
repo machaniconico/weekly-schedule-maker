@@ -7,6 +7,7 @@ import {
   snapToMondayStr,
   validateTemplate,
   parseTemplateJson,
+  exportFilename,
   DAYS_JA,
   DARK_THEME_IDS,
 } from "../src/lib/schedule.js";
@@ -158,6 +159,33 @@ describe("validateTemplate", () => {
 
   it("opts なしでは未知 design もそのまま（後方互換・寛容）", () => {
     expect(validateTemplate({ design: "anything", schedule: [] }).design).toBe("anything");
+  });
+});
+
+describe("exportFilename", () => {
+  it("タイトルと期間からファイル名を生成", () => {
+    expect(exportFilename("週間スケジュール", "6/22 ー 6/28", "png")).toBe("週間スケジュール_6-22_6-28.png");
+  });
+  it("拡張子を切り替えられる", () => {
+    expect(exportFilename("test", "1/1 ー 1/7", "svg")).toBe("test_1-1_1-7.svg");
+  });
+  it("タイトル空なら期間のみ", () => {
+    expect(exportFilename("", "6/22 ー 6/28", "png")).toBe("6-22_6-28.png");
+  });
+  it("両方空なら既定名 schedule", () => {
+    expect(exportFilename("", "", "png")).toBe("schedule.png");
+  });
+  it("ファイル名に使えない文字を除去", () => {
+    expect(exportFilename('a/b:c*?"<>|', "1/1 ー 1/7", "png")).toBe("abc_1-1_1-7.png");
+  });
+  it("空白はアンダースコアに、長すぎるタイトルは切り詰め", () => {
+    const longTitle = "あ".repeat(60);
+    const r = exportFilename(longTitle, "", "png");
+    expect(r.endsWith(".png")).toBe(true);
+    expect(r.replace(".png", "").length).toBeLessThanOrEqual(40);
+  });
+  it("拡張子デフォルトは png", () => {
+    expect(exportFilename("x", "")).toBe("x.png");
   });
 });
 

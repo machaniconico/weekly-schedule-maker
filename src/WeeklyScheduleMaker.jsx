@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { DAYS_JA, DAYS_EN, getMonday, fmtDate, isDk, emptySchedule, snapToMondayStr, parseTemplateJson } from "./lib/schedule.js";
+import { DAYS_JA, DAYS_EN, getMonday, fmtDate, isDk, emptySchedule, snapToMondayStr, parseTemplateJson, exportFilename } from "./lib/schedule.js";
 
 const F="'Zen Maru Gothic','Hiragino Kaku Gothic Pro','Yu Gothic',sans-serif";
 const MO="'Courier New','Consolas',monospace";
@@ -1108,7 +1108,7 @@ function buildExportSVG({designId,t,sch,range,title,img}){
 /* ════════════════════════════════════════
    EXPORT MODAL
    ════════════════════════════════════════ */
-function ExportModal({svgString,onClose,accent,dark}){
+function ExportModal({svgString,onClose,accent,dark,title,range}){
   const[tab,setTab]=useState("png");const[pngUrl,setPngUrl]=useState(null);const[status,setStatus]=useState("loading");
   const svgB64="data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(svgString)));
   useEffect(()=>{setStatus("loading");setPngUrl(null);const im=new Image();im.onload=()=>{try{const c=document.createElement("canvas");c.width=1280;c.height=720;c.getContext("2d").drawImage(im,0,0,1280,720);setPngUrl(c.toDataURL("image/png"));setStatus("done");}catch{setStatus("error");}};im.onerror=()=>setStatus("error");im.src=svgB64;},[svgString]);
@@ -1117,8 +1117,8 @@ function ExportModal({svgString,onClose,accent,dark}){
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"20px 24px 0"}}><div style={{fontWeight:900,fontSize:20,color:accent}}>📥 画像を保存</div><button onClick={onClose} style={{background:"none",border:"none",fontSize:24,cursor:"pointer",color:tx,opacity:.5}}>✕</button></div>
     <div style={{display:"flex",gap:8,padding:"16px 24px 0"}}>{[{id:"png",label:"🖼️ PNG"},{id:"svg",label:"✏️ SVG"}].map(x=>(<button key={x.id} onClick={()=>setTab(x.id)} style={{flex:1,padding:"12px",borderRadius:12,border:tab===x.id?`2px solid ${accent}`:`2px solid ${"#e2e8f0"}`,background:tab===x.id?`${accent}15`:"transparent",cursor:"pointer",fontFamily:"inherit",fontWeight:900,fontSize:15,color:tab===x.id?accent:tx}}>{x.label}</button>))}</div>
     <div style={{padding:"16px 24px 24px"}}>
-      {tab==="png"&&(<div>{status==="loading"&&<div style={{textAlign:"center",padding:40,color:tx,opacity:.6}}>⏳ PNG生成中...</div>}{status==="done"&&pngUrl&&<div><div style={{borderRadius:12,overflow:"hidden",border:`2px solid ${accent}30`,marginBottom:16}}><img src={pngUrl} alt="PNG" style={{width:"100%",display:"block"}}/></div><div style={{background:"#f1f5f9",borderRadius:12,padding:16}}><div style={{fontWeight:700,fontSize:14,color:accent,marginBottom:8}}>💡 保存方法</div><div style={{fontSize:13,color:tx,opacity:.7,lineHeight:1.8}}><strong>スマホ：</strong>画像を長押し → 保存<br/><strong>PC：</strong>右クリック → 名前を付けて保存</div></div></div>}{status==="error"&&<div style={{textAlign:"center",padding:30,color:"#ef4444"}}>PNG変換失敗。SVGタブをお試しください。</div>}</div>)}
-      {tab==="svg"&&(<div><div style={{borderRadius:12,overflow:"hidden",border:`2px solid ${accent}30`,marginBottom:16}}><img src={svgB64} alt="SVG" style={{width:"100%",display:"block"}}/></div><div style={{background:"#f1f5f9",borderRadius:12,padding:16,marginBottom:12}}><div style={{fontWeight:700,fontSize:14,color:accent,marginBottom:8}}>💡 保存方法</div><div style={{fontSize:13,color:tx,opacity:.7,lineHeight:1.8}}><strong>PC：</strong>画像を右クリック → 名前を付けて保存 → .svg に<br/><strong>スマホ：</strong>画像を長押し → 保存</div></div><div style={{background:`${accent}08`,borderRadius:12,padding:16,border:`1px solid ${accent}20`}}><div style={{fontWeight:700,fontSize:13,color:accent,marginBottom:6}}>✏️ SVGで編集可能</div><div style={{fontSize:12,color:tx,opacity:.6,lineHeight:1.7}}>Illustrator / Inkscape / Figma でVTuberモデルを配置したり自由に編集できます。</div></div></div>)}
+      {tab==="png"&&(<div>{status==="loading"&&<div style={{textAlign:"center",padding:40,color:tx,opacity:.6}}>⏳ PNG生成中...</div>}{status==="done"&&pngUrl&&<div><div style={{borderRadius:12,overflow:"hidden",border:`2px solid ${accent}30`,marginBottom:16}}><img src={pngUrl} alt="PNG" style={{width:"100%",display:"block"}}/></div><a href={pngUrl} download={exportFilename(title,range,"png")} style={{display:"block",textAlign:"center",padding:"14px",borderRadius:12,background:accent,color:"white",fontWeight:900,fontSize:16,textDecoration:"none",marginBottom:14,boxShadow:`0 4px 16px ${accent}40`}}>⬇️ PNGをダウンロード</a><div style={{background:"#f1f5f9",borderRadius:12,padding:16}}><div style={{fontWeight:700,fontSize:14,color:accent,marginBottom:8}}>💡 ダウンロードできない場合</div><div style={{fontSize:13,color:tx,opacity:.7,lineHeight:1.8}}><strong>スマホ：</strong>画像を長押し → 保存<br/><strong>PC：</strong>右クリック → 名前を付けて保存</div></div></div>}{status==="error"&&<div style={{textAlign:"center",padding:30,color:"#ef4444"}}>PNG変換失敗。SVGタブをお試しください。</div>}</div>)}
+      {tab==="svg"&&(<div><div style={{borderRadius:12,overflow:"hidden",border:`2px solid ${accent}30`,marginBottom:16}}><img src={svgB64} alt="SVG" style={{width:"100%",display:"block"}}/></div><a href={svgB64} download={exportFilename(title,range,"svg")} style={{display:"block",textAlign:"center",padding:"14px",borderRadius:12,background:accent,color:"white",fontWeight:900,fontSize:16,textDecoration:"none",marginBottom:14,boxShadow:`0 4px 16px ${accent}40`}}>⬇️ SVGをダウンロード</a><div style={{background:"#f1f5f9",borderRadius:12,padding:16,marginBottom:12}}><div style={{fontWeight:700,fontSize:14,color:accent,marginBottom:8}}>💡 ダウンロードできない場合</div><div style={{fontSize:13,color:tx,opacity:.7,lineHeight:1.8}}><strong>PC：</strong>画像を右クリック → 名前を付けて保存 → .svg に<br/><strong>スマホ：</strong>画像を長押し → 保存</div></div><div style={{background:`${accent}08`,borderRadius:12,padding:16,border:`1px solid ${accent}20`}}><div style={{fontWeight:700,fontSize:13,color:accent,marginBottom:6}}>✏️ SVGで編集可能</div><div style={{fontSize:12,color:tx,opacity:.6,lineHeight:1.7}}>Illustrator / Inkscape / Figma でVTuberモデルを配置したり自由に編集できます。</div></div></div>)}
     </div></div></div>);
 }
 
@@ -1156,7 +1156,7 @@ export default function WeeklyScheduleMaker(){
   return(
     <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:F}}>
       <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet"/>
-      {showExport&&<ExportModal svgString={exportStr} onClose={()=>setShowExport(false)} accent={theme.accent} dark={dark}/>}
+      {showExport&&<ExportModal svgString={exportStr} onClose={()=>setShowExport(false)} accent={theme.accent} dark={dark} title={title} range={range}/>}
       {toast&&<div style={{position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",zIndex:2000,background:"white",color:pTx,padding:"12px 24px",borderRadius:12,boxShadow:"0 8px 32px rgba(0,0,0,0.2)",fontWeight:700,fontSize:14,border:`2px solid ${theme.accent}40`}}>{toast}</div>}
 
       <div style={{background:"rgba(255,255,255,0.9)",backdropFilter:"blur(12px)",borderBottom:`1px solid ${bd}`,padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:50}}>
@@ -1183,7 +1183,7 @@ export default function WeeklyScheduleMaker(){
               </div>
               <div style={{textAlign:"center",fontSize:13,color:theme.accent,fontWeight:700,marginBottom:20}}>{theme.name}</div>
               <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:700,color:pTx,marginBottom:8,opacity:.6}}>タイトル</div><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Weekly Schedule" style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1.5px solid ${iBd}`,background:iBg,fontSize:15,fontFamily:"inherit",color:pTx,boxSizing:"border-box",outline:"none"}}/></div>
-              <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:700,color:pTx,marginBottom:8,opacity:.6}}>開始日（月曜日）</div><input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1.5px solid ${iBd}`,background:iBg,fontSize:14,fontFamily:"inherit",color:pTx,boxSizing:"border-box",outline:"none"}}/></div>
+              <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:700,color:pTx,marginBottom:8,opacity:.6}}>開始日（自動で月曜に調整）</div><input type="date" value={startDate} onChange={e=>{const v=e.target.value;const snapped=snapToMondayStr(v);setStartDate(snapped||v);}} style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1.5px solid ${iBd}`,background:iBg,fontSize:14,fontFamily:"inherit",color:pTx,boxSizing:"border-box",outline:"none"}}/><div style={{fontSize:11,color:pTx,opacity:.4,marginTop:5}}>どの曜日を選んでも、その週の月曜日に自動調整されます</div></div>
               <div style={{background:`${theme.accent}06`,borderRadius:14,padding:14,border:`1px solid ${theme.accent}15`}}>
                 <div style={{fontSize:13,fontWeight:700,color:pTx,marginBottom:6,opacity:.6}}>🖼️ カスタム画像（任意）</div>
                 <div style={{fontSize:11,color:pTx,opacity:.35,marginBottom:8}}>モデル配置エリアに画像を重ねて表示</div>
@@ -1196,7 +1196,10 @@ export default function WeeklyScheduleMaker(){
             </div>)}
 
             {tab==="schedule"&&(<div>
-              <div style={{fontSize:13,fontWeight:700,color:pTx,marginBottom:12,opacity:.6}}>各曜日の配信予定</div>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+                <div style={{fontSize:13,fontWeight:700,color:pTx,opacity:.6}}>各曜日の配信予定</div>
+                <button onClick={()=>{if(schedule.some(s=>s.text||s.time)){if(!window.confirm("すべての予定をクリアしますか？"))return;}setSchedule(emptySchedule());notify("🧹 予定をクリアしました");}} style={{padding:"5px 12px",borderRadius:8,border:`1px solid ${iBd}`,background:"transparent",color:pTx,fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit",opacity:.7}}>🧹 全消去</button>
+              </div>
               {schedule.map((item,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return(
                 <div key={i} style={{marginBottom:10,background:iBg,borderRadius:12,padding:12,border:`1px solid ${iBd}`}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
