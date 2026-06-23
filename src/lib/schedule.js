@@ -95,6 +95,18 @@ export function parseTemplateJson(str, opts = {}) {
   return validateTemplate(parsed, opts);
 }
 
+// SVG/XML へ埋め込む文字列をエスケープする。
+// ユーザー入力（タイトル・配信内容・時間）をSVGマークアップへ直接連結する際、
+// & < > " ' をエスケープしないと不正なSVGになり書き出しが壊れる。
+export function escapeXml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ダウンロード用のファイル名を生成する（拡張子なしのベース名）。
 // タイトル・期間からファイルシステムに安全な名前を作る。
 export function exportFilename(title, range, ext = "png") {

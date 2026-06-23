@@ -8,6 +8,7 @@ import {
   validateTemplate,
   parseTemplateJson,
   exportFilename,
+  escapeXml,
   DAYS_JA,
   DARK_THEME_IDS,
 } from "../src/lib/schedule.js";
@@ -159,6 +160,27 @@ describe("validateTemplate", () => {
 
   it("opts なしでは未知 design もそのまま（後方互換・寛容）", () => {
     expect(validateTemplate({ design: "anything", schedule: [] }).design).toBe("anything");
+  });
+});
+
+describe("escapeXml", () => {
+  it("XML特殊文字をエスケープ", () => {
+    expect(escapeXml('<a href="x" b=\'y\'>&z')).toBe(
+      "&lt;a href=&quot;x&quot; b=&#39;y&#39;&gt;&amp;z"
+    );
+  });
+  it("& を最初に処理して二重エスケープしない", () => {
+    expect(escapeXml("&lt;")).toBe("&amp;lt;");
+  });
+  it("null/undefined は空文字", () => {
+    expect(escapeXml(null)).toBe("");
+    expect(escapeXml(undefined)).toBe("");
+  });
+  it("通常文字はそのまま", () => {
+    expect(escapeXml("配信 20:00〜")).toBe("配信 20:00〜");
+  });
+  it("数値も文字列化して処理", () => {
+    expect(escapeXml(22)).toBe("22");
   });
 });
 
