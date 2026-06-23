@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { DAYS_JA, DAYS_EN, getMonday, fmtDate, isDk, emptySchedule, snapToMondayStr, parseTemplateJson, exportFilename, escapeXml } from "./lib/schedule.js";
+import { useState, useEffect, useRef } from "react";
+import { DAYS_JA, DAYS_EN, getMonday, fmtDate, isDk, emptySchedule, snapToMondayStr, parseTemplateJson, exportFilename, escapeXml, parseDraft, DRAFT_KEY } from "./lib/schedule.js";
 
 const F="'Zen Maru Gothic','Hiragino Kaku Gothic Pro','Yu Gothic',sans-serif";
 const MO="'Courier New','Consolas',monospace";
@@ -1152,13 +1152,20 @@ function useIsMobile(maxWidth=768){
 
 export default function WeeklyScheduleMaker(){
   const isMobile=useIsMobile();
-  const[design,setDesign]=useState("kawaii");const[themeIdx,setThemeIdx]=useState(0);const[uploadedImg,setUploadedImg]=useState(null);
-  const[title,setTitle]=useState("");const[startDate,setStartDate]=useState(()=>{const m=getMonday(new Date());return m.toISOString().split("T")[0];});
-  const[schedule,setSchedule]=useState(emptySchedule);
+  // 作業中ドラフトを一度だけ読み込み、各stateの初期値に使う（リロードで入力が消えないように）
+  const draftRef=useRef(undefined);
+  if(draftRef.current===undefined){try{draftRef.current=parseDraft(localStorage.getItem(DRAFT_KEY),{designIds:DESIGNS.map(d=>d.id),themeCount:THEMES.length});}catch{draftRef.current=null;}}
+  const draft=draftRef.current;
+
+  const[design,setDesign]=useState(draft?.design||"kawaii");const[themeIdx,setThemeIdx]=useState(draft?.themeIdx??0);const[uploadedImg,setUploadedImg]=useState(null);
+  const[title,setTitle]=useState(draft?.title||"");const[startDate,setStartDate]=useState(()=>draft?.startDate||getMonday(new Date()).toISOString().split("T")[0]);
+  const[schedule,setSchedule]=useState(()=>draft?.schedule||emptySchedule());
   const[tab,setTab]=useState("design");const[showExport,setShowExport]=useState(false);
   const[myTemplates,setMyTemplates]=useState([]);const[saveName,setSaveName]=useState("");const[importJson,setImportJson]=useState("");const[toast,setToast]=useState("");
 
   const notify=(m)=>{setToast(m);setTimeout(()=>setToast(""),2500);};
+  // 作業中の内容を自動保存（画像はサイズが大きくquotaを圧迫するため除外）
+  useEffect(()=>{try{localStorage.setItem(DRAFT_KEY,JSON.stringify({design,themeIdx,title,startDate,schedule}));}catch{}},[design,themeIdx,title,startDate,schedule]);
   useEffect(()=>{try{const r=localStorage.getItem("my-templates");if(r)setMyTemplates(JSON.parse(r));}catch{}},[]);
   const persist=async(list)=>{setMyTemplates(list);try{localStorage.setItem("my-templates",JSON.stringify(list));}catch{notify("⚠️ 保存に失敗しました（ブラウザのストレージ制限の可能性）");}};
 
@@ -1235,6 +1242,7 @@ export default function WeeklyScheduleMaker(){
                   <input value={item.text} onChange={e=>upd(i,"text",e.target.value)} placeholder="配信内容" style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${iBd}`,background:"#f8fafc",fontSize:14,fontFamily:"inherit",color:pTx,marginBottom:6,boxSizing:"border-box",outline:"none"}}/>
                   <input value={item.time} onChange={e=>upd(i,"time",e.target.value)} placeholder="時間（例：20:00〜）" style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${iBd}`,background:"#f8fafc",fontSize:14,fontFamily:"inherit",color:pTx,boxSizing:"border-box",outline:"none"}}/>
                 </div>);})}
+              <div style={{textAlign:"center",fontSize:11,color:pTx,opacity:.4,marginTop:6}}>💾 入力内容は自動保存され、次回も復元されます</div>
             </div>)}
 
             {tab==="templates"&&(<div>
